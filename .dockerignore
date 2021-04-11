@@ -1,0 +1,12 @@
+./share/*.*
+./share/**/*.*
+./share/**/tests
+./docs
+./examples
+./draethos
+./*.env*
+./*.yml
+./*.yaml
+./*.md
+Dockerfile
+cp.out

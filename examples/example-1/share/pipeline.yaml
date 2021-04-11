@@ -1,0 +1,30 @@
+stream:
+  port: 9999
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      type: kafka
+      specs:
+        topic: draethos.inbound
+        timeoutMs: 1000
+        configurations:
+          group.id: 'draethos'
+          bootstrap.servers: 'localhost:9093'
+          auto.offset.reset: 'beginning'
+          enable.auto.commit: false
+    target:
+      type: kafka
+      specs:
+        topic: datalake.draethos.outbond
+        batchSize: 50
+        configurations:
+          bootstrap.servers: 'localhost:9093'
+    dlq:
+      type: kafka
+      specs:
+        topic: datalake.draethos.outbond.Dlq
+        configurations:
+          bootstrap.servers: 'localhost:9093'

@@ -1,0 +1,31 @@
+stream:
+  port: 9999
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      type: kafka
+      specs:
+        topic: development.extractor.ExternalTransactionRaw
+        timeoutMs: 10000
+        configurations:
+          group.id: 'draethos'
+          bootstrap.servers: 'localhost:9093'
+          auto.offset.reset: 'beginning'
+          enable.auto.commit: false
+    target:
+      type: gcloudstorage
+      specs:
+        bucket: topic_test_1
+        prefix: '/topic_test_1/year=%{YEAR}/month=%{MONTH}/day=%{DAY}/hour=%{HOUR}/'
+        codec: jsonl
+        batchSize: 1000
+        flushInMilliseconds: 100000
+    dlq:
+      type: kafka
+      specs:
+        topic: topic_test_1_dlq
+        configurations:
+          bootstrap.servers: 'localhost:9093'
