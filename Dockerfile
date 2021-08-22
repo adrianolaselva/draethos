@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -a -ldflags="-s -w" -o draethos
+RUN GOOS=linux GOARCH=amd64 go build -a -ldflags="-s -w" -o draethos ./init
 
 FROM debian:sid-slim
 
