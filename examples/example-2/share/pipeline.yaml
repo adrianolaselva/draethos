@@ -8,7 +8,7 @@ stream:
     source:
       type: kafka
       specs:
-        topic: development.extractor.ExternalTransactionRaw
+        topic: draethos.inbound
         timeoutMs: 10000
         configurations:
           group.id: 'draethos'
@@ -18,11 +18,18 @@ stream:
     target:
       type: gcloudstorage
       specs:
-        bucket: topic_test_1
+        bucket: payreport-qa
         prefix: '/topic_test_1/year=%{YEAR}/month=%{MONTH}/day=%{DAY}/hour=%{HOUR}/'
         codec: jsonl
-        batchSize: 1000
+        bufferSize: 10000
         flushInMilliseconds: 100000
+        configurations:
+          #aws.credential.file: ''
+          #aws.profile: ''
+          #aws.token: ''
+          aws.access.key: ''
+          aws.secret.key: ''
+          aws.region: 'us-east-1'
     dlq:
       type: kafka
       specs:

@@ -1,8 +1,8 @@
 package streams
 
 const (
-	KafkaTarget         = "kafka"
-	GCloudStorageTarget = "gcloudstorage"
+	KafkaTarget = "kafka"
+	S3Target    = "s3"
 )
 
 type Target interface {
@@ -14,7 +14,7 @@ func GetTargetContext(ctx string) Source {
 	switch ctx {
 	case KafkaTarget:
 		return nil
-	case GCloudStorageTarget:
+	case S3Target:
 		return nil
 	default:
 		return nil
