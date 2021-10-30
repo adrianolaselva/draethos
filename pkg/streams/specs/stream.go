@@ -35,13 +35,14 @@ type SourceSpecs struct {
 }
 
 type TargetSpecs struct {
-	Database               string                 `yaml:"database"`
+	Database            string                 `yaml:"database"`
 	Table               string                 `yaml:"table"`
 	Topic               string                 `yaml:"topic"`
 	Bucket              string                 `yaml:"bucket"`
 	Prefix              string                 `yaml:"prefix"`
 	Codec               string                 `yaml:"codec"`
 	BatchSize           int                    `yaml:"batchSize"`
+	BufferSize          int                    `yaml:"bufferSize"`
 	FlushInMilliseconds int                    `yaml:"flushInMilliseconds"`
 	Configurations      map[string]interface{} `yaml:"configurations"`
 }

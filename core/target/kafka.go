@@ -22,7 +22,7 @@ type kafkaTarget struct {
 func NewKafkaTarget(targetSpec specs.Target, codec interfaces.CodecInterface) (*kafkaTarget, error) {
 	return &kafkaTarget{targetSpec: targetSpec, codec: codec, configMap: kafka.ConfigMap{
 		"message.send.max.retries": 10000000,
-		"enable.idempotence": true,
+		"enable.idempotence":       true,
 	}, queue: list.New()}, nil
 }
 
