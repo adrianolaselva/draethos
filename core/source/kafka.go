@@ -20,7 +20,10 @@ type kafkaSource struct {
 	configMap  kafka.ConfigMap
 }
 
-func NewKafkaSource(sourceSpec specs.Source, target interfaces.TargetInterface, dlq interfaces.TargetInterface, codec interfaces.CodecInterface) (interfaces.SourceInterface, error) {
+func NewKafkaSource(sourceSpec specs.Source,
+	target interfaces.TargetInterface,
+	dlq interfaces.TargetInterface,
+	codec interfaces.CodecInterface) (interfaces.SourceInterface, error) {
 	return kafkaSource{sourceSpec: sourceSpec, target: target, dlq: dlq, codec: codec, configMap: kafka.ConfigMap{
 		"go.application.rebalance.enable": true,
 		"enable.partition.eof":            true,
