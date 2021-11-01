@@ -16,7 +16,7 @@ stream:
           auto.offset.reset: 'beginning'
           enable.auto.commit: false
     target:
-      type: gcloudstorage
+      type: s3
       specs:
         bucket: payreport-qa
         prefix: '/topic_test_1/year=%{YEAR}/month=%{MONTH}/day=%{DAY}/hour=%{HOUR}/'

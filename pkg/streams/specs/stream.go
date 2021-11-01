@@ -42,7 +42,8 @@ type TargetSpecs struct {
 	Prefix              string                 `yaml:"prefix"`
 	Codec               string                 `yaml:"codec"`
 	BatchSize           int                    `yaml:"batchSize"`
-	BufferSize          int                    `yaml:"bufferSize"`
+	BufferSize          uint64                    `yaml:"bufferSize"`
+	LineBreak          string                    `yaml:"lineBreak"`
 	FlushInMilliseconds int                    `yaml:"flushInMilliseconds"`
 	Configurations      map[string]interface{} `yaml:"configurations"`
 }
