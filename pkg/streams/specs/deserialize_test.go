@@ -22,32 +22,32 @@ func TestShouldDeserializeYamlWithSuccessful(t *testing.T) {
 		t.Errorf("failed to deserialize [Metrics.Endpoint]")
 	}
 
-	if data.Stream.Instances[0].Source.Type != "kafka" {
-		t.Errorf("failed to deserialize [Instances[0].Source.Type]")
+	if data.Stream.Instance.Source.Type != "kafka" {
+		t.Errorf("failed to deserialize [Instances.Source.Type]")
 	}
 
-	if data.Stream.Instances[0].Source.SourceSpecs.Topic != "topic_test_1" {
-		t.Errorf("failed to deserialize [Instances[0].Source.SourceSpecs.Topic]")
+	if data.Stream.Instance.Source.SourceSpecs.Topic != "topic_test_1" {
+		t.Errorf("failed to deserialize [Instances.Source.SourceSpecs.Topic]")
 	}
 
-	if data.Stream.Instances[0].Target.Type != "gcloudstorage" {
-		t.Errorf("failed to deserialize [Instances[0].Target.Type]")
+	if data.Stream.Instance.Target.Type != "gcloudstorage" {
+		t.Errorf("failed to deserialize [Instances.Target.Type]")
 	}
 
-	if data.Stream.Instances[0].Target.TargetSpecs.Bucket != "topic_test_1" {
-		t.Errorf("failed to deserialize [Instances[0].Target.TargetSpecs.Bucket]")
+	if data.Stream.Instance.Target.TargetSpecs.Bucket != "topic_test_1" {
+		t.Errorf("failed to deserialize [Instances.Target.TargetSpecs.Bucket]")
 	}
 
-	if data.Stream.Instances[0].Target.TargetSpecs.Codec != "jsonl" {
-		t.Errorf("failed to deserialize [Instances[0].Target.TargetSpecs.Bucket]")
+	if data.Stream.Instance.Target.TargetSpecs.Codec != "jsonl" {
+		t.Errorf("failed to deserialize [Instances.Target.TargetSpecs.Bucket]")
 	}
 
-	if data.Stream.Instances[0].Target.TargetSpecs.Prefix != "/topic_test_1/year=%{YEAR}/month=%{MONTH}/day=%{DAY}/hour=%{HOUR}/" {
-		t.Errorf("failed to deserialize [Instances[0].Target.TargetSpecs.Bucket]")
+	if data.Stream.Instance.Target.TargetSpecs.Prefix != "/topic_test_1/year=%{YEAR}/month=%{MONTH}/day=%{DAY}/hour=%{HOUR}/" {
+		t.Errorf("failed to deserialize [Instances.Target.TargetSpecs.Bucket]")
 	}
 
-	if data.Stream.Instances[0].Target.TargetSpecs.BatchSize != 1000 {
-		t.Errorf("failed to deserialize [Instances[0].Target.TargetSpecs.Bucket]")
+	if data.Stream.Instance.Target.TargetSpecs.BatchSize != 1000 {
+		t.Errorf("failed to deserialize [Instances.Target.TargetSpecs.Bucket]")
 	}
 }
 

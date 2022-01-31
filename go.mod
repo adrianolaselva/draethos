@@ -7,6 +7,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.6.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.20.0 // indirect

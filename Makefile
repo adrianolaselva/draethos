@@ -20,4 +20,4 @@ run:
 deps:
 	$(GOGET) -d -v ./...
 build-linux:
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o ./build/unix-x64/$(BINARY_NAME) -v ./init
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME) -v ./init

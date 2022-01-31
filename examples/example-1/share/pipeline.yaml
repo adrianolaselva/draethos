@@ -9,7 +9,7 @@ stream:
       type: kafka
       specs:
         topic: draethos.inbound
-        timeoutMs: 1000
+        timeoutMs: 10000
         configurations:
           group.id: 'draethos'
           bootstrap.servers: 'localhost:9093'
@@ -19,7 +19,7 @@ stream:
       type: kafka
       specs:
         topic: datalake.draethos.outbond
-        batchSize: 50
+        batchSize: 4
         configurations:
           bootstrap.servers: 'localhost:9093'
     dlq:
