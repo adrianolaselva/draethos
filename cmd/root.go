@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/heptiolabs/healthcheck"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"net/http"
 	"os"
 	"syscall"
+
+	"draethos.io.com/pkg/color"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 const (
@@ -31,7 +30,7 @@ func Execute() {
 	var rootCmd = &cobra.Command{
 		Use:     "draethos",
 		Version: release,
-		Long:    fmt.Sprintf(TerminalPrint, release),
+		Long:    fmt.Sprintf("%s%s%s", color.Green, fmt.Sprintf(TerminalPrint, release), color.Reset),
 	}
 
 	startCommand.
@@ -41,6 +40,22 @@ func Execute() {
 			"f",
 			"",
 			"file pipelines to be initialized")
+
+	startCommand.
+		PersistentFlags().
+		StringP(
+			"liveness",
+			"l",
+			"",
+			"initialize with health check")
+
+	startCommand.
+		PersistentFlags().
+		StringP(
+			"metrics",
+			"m",
+			"",
+			"initialize with metrics")
 
 	rootCmd.AddCommand(startCommand)
 
@@ -53,26 +68,4 @@ func Execute() {
 func initializeLogger() {
 	logger, _ := zap.NewDevelopment()
 	zap.ReplaceGlobals(logger)
-}
-
-func initializeHealthCheck(checkEndpoint string, liveEndpoint string, port string) {
-	var health = healthcheck.
-		NewHandler()
-
-	//health.AddLivenessCheck("goroutine-threshold", healthcheck.HTTPGetCheck("", 100))
-	//health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
-	health.AddReadinessCheck("health-name", func() error {
-		return nil
-	})
-
-	mux := http.NewServeMux()
-	mux.HandleFunc(checkEndpoint, health.LiveEndpoint)
-	mux.HandleFunc(liveEndpoint, health.ReadyEndpoint)
-
-	go http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), mux)
-}
-
-func initializePrometheus(endpoint string, port string) {
-	http.Handle(endpoint, promhttp.Handler())
-	go http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
 }

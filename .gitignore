@@ -2,7 +2,8 @@
 .DS_Store
 vendor/
 zk-multiple-kafka-single
-bifrost
+draethos
+build/
 to-do.txt
 go.sum
 *.dist

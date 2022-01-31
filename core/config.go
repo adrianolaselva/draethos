@@ -1,24 +1,33 @@
 package core
 
 import (
-	"draethos.io.com/pkg/streams/specs"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net/http"
 	"strings"
+
+	"draethos.io.com/pkg/streams/specs"
+	"github.com/heptiolabs/healthcheck"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 type ConfigBuilder interface {
 	readFile() error
 	validateExtension() error
 	SetFile(filePath string) ConfigBuilder
+	EnableLiveness() ConfigBuilder
+	EnableMetrics() ConfigBuilder
 	Build() (*specs.Stream, error)
 }
 
 type configBuilder struct {
-	filePath string
-	file     []byte
+	filePath       string
+	enableLiveness bool
+	enableMetrics  bool
+	file           []byte
 }
 
 func NewConfigBuilder() ConfigBuilder {
@@ -39,7 +48,31 @@ func (c *configBuilder) Build() (*specs.Stream, error) {
 		return nil, err
 	}
 
+	if c.enableLiveness {
+		initializeHealthCheck(stream.Stream.HealthCheck.Endpoint, stream.Stream.Port)
+		zap.S().Debugf("initialize entpoint health-check: [localhost:%s%s]",
+			stream.Stream.Port,
+			stream.Stream.HealthCheck.Endpoint)
+	}
+
+	if c.enableMetrics {
+		initializePrometheus(stream.Stream.Metrics.Endpoint, stream.Stream.Port)
+		zap.S().Debugf("initialize endpoint prometheus metrics: [localhost:%s%s]",
+			stream.Stream.Port,
+			stream.Stream.Metrics.Endpoint)
+	}
+
 	return stream, nil
+}
+
+func (c *configBuilder) EnableLiveness() ConfigBuilder {
+	c.enableLiveness = true
+	return c
+}
+
+func (c *configBuilder) EnableMetrics() ConfigBuilder {
+	c.enableMetrics = true
+	return c
 }
 
 func (c *configBuilder) SetFile(filePath string) ConfigBuilder {
@@ -76,4 +109,26 @@ func (c *configBuilder) deserializeYaml() (*specs.Stream, error) {
 	}
 
 	return &stream, nil
+}
+
+func initializeHealthCheck(checkEndpoint string, port string) {
+	var health = healthcheck.
+		NewHandler()
+
+	health.AddLivenessCheck("goroutine-threshold", healthcheck.HTTPGetCheck("", 100))
+	health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
+	health.AddReadinessCheck("health-name", func() error {
+		return nil
+	})
+
+	mux := http.NewServeMux()
+	mux.HandleFunc(checkEndpoint, health.LiveEndpoint)
+	mux.HandleFunc("health2", health.ReadyEndpoint)
+
+	go http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), mux)
+}
+
+func initializePrometheus(endpoint string, port string) {
+	http.Handle(endpoint, promhttp.Handler())
+	go http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
 }

@@ -19,6 +19,14 @@ var startCommand = &cobra.Command{
 			configBuilder.SetFile(value)
 		}
 
+		if _, err := cmd.Flags().GetString("liveness"); err == nil {
+			configBuilder.EnableLiveness()
+		}
+
+		if _, err := cmd.Flags().GetString("metrics"); err == nil {
+			configBuilder.EnableMetrics()
+		}
+
 		config, err := configBuilder.Build()
 		if err != nil {
 			zap.S().Error(err.Error())
