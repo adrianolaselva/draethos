@@ -5,10 +5,17 @@ import (
 	"container/list"
 	"context"
 	"crypto/md5"
-	"draethos.io.com/core/interfaces"
-	"draethos.io.com/pkg/streams/specs"
 	"encoding/json"
 	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"draethos.io.com/core/interfaces"
+	"draethos.io.com/pkg/streams/specs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -16,12 +23,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 const (

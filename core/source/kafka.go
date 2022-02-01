@@ -1,15 +1,16 @@
 package source
 
 import (
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 )
 
 type kafkaSource struct {
@@ -124,7 +125,7 @@ func (k kafkaSource) Worker() error {
 }
 
 func (k *kafkaSource) handleEvent(msg *kafka.Message) error {
-	zap.S().Infof("processing event [key: %s, value %s]", msg.Key, msg.Value)
+	zap.S().Debugf("processing event [key: %s, value %s]", msg.Key, msg.Value)
 
 	payload, err := k.codec.Deserialize(msg.Value)
 	if err != nil {

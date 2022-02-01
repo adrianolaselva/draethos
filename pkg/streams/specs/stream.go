@@ -37,6 +37,7 @@ type SourceSpecs struct {
 type TargetSpecs struct {
 	Database            string                 `yaml:"database"`
 	Table               string                 `yaml:"table"`
+	KeyColumnName       string                 `yaml:"keyColumnName"`
 	Topic               string                 `yaml:"topic"`
 	Bucket              string                 `yaml:"bucket"`
 	Prefix              string                 `yaml:"prefix"`
