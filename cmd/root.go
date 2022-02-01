@@ -66,6 +66,6 @@ func Execute() {
 }
 
 func initializeLogger() {
-	logger, _ := zap.NewProduction()
+	logger, _ := zap.NewDevelopment()
 	zap.ReplaceGlobals(logger)
 }

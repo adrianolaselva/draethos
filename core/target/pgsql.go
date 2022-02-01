@@ -18,15 +18,15 @@ import (
 )
 
 const (
-	SqlInsertTemplate                     = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
-	SqlAlterTableAddPrimaryKeyTemplate    = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
-	SqlAlterTableAddUniqueKeyColumn       = "ALTER TABLE %s ADD UNIQUE(%s);\n"
-	SqlAlterTableAddColumnVarcharTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
-	SqlAlterTableAddColumnTextTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
-	SqlAlterTableAddColumnIntTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s INT %s;\n"
-	SqlAlterTableAddColumnNumericTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s NUMERIC(12,2) %s;\n"
-	SqlAlterTableAddColumnBoolTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s BOOL NOT NULL DEFAULT false;\n"
-	SqlAlterTableAddColumnJsonbTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s JSONB NULL;\n"
+	PgSqlInsertTemplate                     = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
+	PgSqlAlterTableAddPrimaryKeyTemplate    = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
+	PgSqlAlterTableAddUniqueKeyColumn       = "ALTER TABLE %s ADD UNIQUE(%s);\n"
+	PgSqlAlterTableAddColumnVarcharTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
+	PgSqlAlterTableAddColumnTextTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
+	PgSqlAlterTableAddColumnIntTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s INT %s;\n"
+	PgSqlAlterTableAddColumnNumericTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s NUMERIC(12,2) %s;\n"
+	PgSqlAlterTableAddColumnBoolTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s BOOL NOT NULL DEFAULT false;\n"
+	PgSqlAlterTableAddColumnJsonbTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s JSONB NULL;\n"
 )
 
 type pgsqlTarget struct {
@@ -85,7 +85,7 @@ func (p *pgsqlTarget) Initialize() error {
 
 	if _, err := p.db.Exec(
 		fmt.Sprintf(
-			SqlAlterTableAddPrimaryKeyTemplate,
+			PgSqlAlterTableAddPrimaryKeyTemplate,
 			p.targetSpec.TargetSpecs.Table,
 			p.targetSpec.TargetSpecs.KeyColumnName,
 			p.targetSpec.TargetSpecs.KeyColumnName)); err != nil {
@@ -167,53 +167,53 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 			switch v.(type) {
 			case int:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case int8:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case int16:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case int32:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case int64:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case float32:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnNumericTemplate,
+					PgSqlAlterTableAddColumnNumericTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case float64:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnIntTemplate,
+					PgSqlAlterTableAddColumnIntTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault))
 			case bool:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnBoolTemplate,
+					PgSqlAlterTableAddColumnBoolTemplate,
 					p.targetSpec.TargetSpecs.Table, k))
 			case map[string]interface{}:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnJsonbTemplate,
+					PgSqlAlterTableAddColumnJsonbTemplate,
 					p.targetSpec.TargetSpecs.Table, k))
 			case []interface{}:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnJsonbTemplate,
+					PgSqlAlterTableAddColumnJsonbTemplate,
 					p.targetSpec.TargetSpecs.Table, k))
 			default:
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddColumnVarcharTemplate,
+					PgSqlAlterTableAddColumnVarcharTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldVarcharDefault))
 			}
 
 			if k == p.targetSpec.TargetSpecs.KeyColumnName {
 				bufferRx.WriteString(fmt.Sprintf(
-					SqlAlterTableAddUniqueKeyColumn,
+					PgSqlAlterTableAddUniqueKeyColumn,
 					p.targetSpec.TargetSpecs.Table, k))
 			}
 
@@ -281,7 +281,7 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 	}
 
 	bufferRx.WriteString(fmt.Sprintf(
-		SqlInsertTemplate,
+		PgSqlInsertTemplate,
 		p.targetSpec.TargetSpecs.Table,
 		strings.Join(columns, ","),
 		strings.Join(values, ","),
