@@ -19,6 +19,7 @@ import (
 
 const (
 	SqlInsertTemplate                     = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
+	SqlAlterTableAddPrimaryKeyTemplate    = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
 	SqlAlterTableAddUniqueKeyColumn       = "ALTER TABLE %s ADD UNIQUE(%s);\n"
 	SqlAlterTableAddColumnVarcharTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
 	SqlAlterTableAddColumnTextTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
@@ -84,7 +85,7 @@ func (p *pgsqlTarget) Initialize() error {
 
 	if _, err := p.db.Exec(
 		fmt.Sprintf(
-			"CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s))",
+			SqlAlterTableAddPrimaryKeyTemplate,
 			p.targetSpec.TargetSpecs.Table,
 			p.targetSpec.TargetSpecs.KeyColumnName,
 			p.targetSpec.TargetSpecs.KeyColumnName)); err != nil {
