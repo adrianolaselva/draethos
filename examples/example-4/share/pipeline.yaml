@@ -11,23 +11,22 @@ stream:
         topic: draethos.inbound
         timeoutMs: 1000
         configurations:
-          group.id: 'draethos6'
+          group.id: 'draethos5'
           bootstrap.servers: 'localhost:9093'
           auto.offset.reset: 'beginning'
           enable.auto.commit: false
     target:
-      type: pgsql
+      type: mysql
       specs:
-        database: transaction_extractor
+        database: laravel
         table: extrac
-        keyColumnName: uuid
+        keyColumnName: id
         batchSize: 100
         configurations:
           host: '127.0.0.1'
-          port: 5432
-          user: 'root'
+          port: 3306
+          user: 'laravel'
           password: 'root'
-          sslmode: 'disable'
     dlq:
       type: kafka
       specs:
