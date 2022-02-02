@@ -8,9 +8,28 @@ From the days of its foundation, the Library of Ossus contained the culmination 
 
 ## Description 
 
-The tool developed with the information extract in stream and partition in the storage make data available or even provide information in a fluid way.
+Tool developed to work as a utility, providing an easy way to populate databases from events.
+
+It is possible to use as a utility, having compilation for linux, macos and windows, and also being possible to run through container orchestrators.
 
 ## Build project
 ```sh
 make docker-build release=latest
 ```
+
+## Pipelines.
+
+### Sources
+|  Id |  Source |
+|---|---|
+| kafka  | Apache Kafka  |
+
+### Targets
+|  Id |  Target |
+|---|---|
+| kafka  | Apache Kafka  |
+| s3  | AWS S3  |
+| sqs  | AWS SQS  |
+| sns | AWS SNS  |
+| pgsql  | Postgres  |
+| mysql  | Mysql  |

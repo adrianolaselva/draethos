@@ -39,6 +39,9 @@ type TargetSpecs struct {
 	Table               string                 `yaml:"table"`
 	KeyColumnName       string                 `yaml:"keyColumnName"`
 	Topic               string                 `yaml:"topic"`
+	Queue               string                 `yaml:"queue"`
+	QueueUrl            string                 `yaml:"queueUrl"`
+	TopicArn            string                 `yaml:"topicArn"`
 	Bucket              string                 `yaml:"bucket"`
 	Prefix              string                 `yaml:"prefix"`
 	Codec               string                 `yaml:"codec"`
@@ -46,6 +49,7 @@ type TargetSpecs struct {
 	BufferSize          uint64                 `yaml:"bufferSize"`
 	LineBreak           string                 `yaml:"lineBreak"`
 	FlushInMilliseconds int                    `yaml:"flushInMilliseconds"`
+	DelaySeconds        int64                  `yaml:"delaySeconds"`
 	Configurations      map[string]interface{} `yaml:"configurations"`
 }
 
