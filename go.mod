@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/aws/aws-sdk-go v1.41.14
 	github.com/confluentinc/confluent-kafka-go v1.6.1 // indirect
+	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
@@ -13,7 +14,6 @@ require (
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.20.0 // indirect
 	github.com/spf13/cobra v1.1.3
-	github.com/stretchr/testify v1.5.1 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect

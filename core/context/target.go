@@ -14,6 +14,7 @@ const (
 	S3Target    = "s3"
 	PgSqlTarget = "pgsql"
 	MySqlTarget = "mysql"
+	MssqlTarget = "mssql"
 )
 
 func NewTargetContext(targetSpec specs.Target) (interfaces.TargetInterface, error) {
@@ -26,6 +27,8 @@ func NewTargetContext(targetSpec specs.Target) (interfaces.TargetInterface, erro
 		return target.NewPgsqlTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
 	case MySqlTarget:
 		return target.NewMysqlTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
+	case MssqlTarget:
+		return target.NewMssqlTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
 	default:
 		return nil, errors.New(fmt.Sprintf("target %s is invalid", targetSpec.Type))
 	}
