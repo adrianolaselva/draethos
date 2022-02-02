@@ -26,10 +26,10 @@ import (
 )
 
 const (
-	DefaultAWSRegion      = "us-east-1"
-	DefaultProfile        = "default"
-	bufferSizeDefault int = 1048576
-	LineBreakDefault      = "\n"
+	S3DefaultAWSRegion      = "us-east-1"
+	S3DefaultProfile        = "default"
+	s3bufferSizeDefault int = 1048576
+	S3LineBreakDefault      = "\n"
 )
 
 type s3Target struct {
@@ -48,8 +48,8 @@ func NewS3Target(targetSpec specs.Target, codec interfaces.CodecInterface) (inte
 
 func (g *s3Target) Initialize() error {
 	var cred *credentials.Credentials
-	var region = DefaultAWSRegion
-	var profile = DefaultProfile
+	var region = S3DefaultAWSRegion
+	var profile = S3DefaultProfile
 	var accessKey = ""
 	var secretKey = ""
 	var token = ""
@@ -59,7 +59,7 @@ func (g *s3Target) Initialize() error {
 	}
 
 	if g.targetSpec.TargetSpecs.LineBreak == "" {
-		g.targetSpec.TargetSpecs.LineBreak = LineBreakDefault
+		g.targetSpec.TargetSpecs.LineBreak = S3LineBreakDefault
 	}
 
 	if value, ok := g.targetSpec.TargetSpecs.Configurations["aws.region"].(string); ok {

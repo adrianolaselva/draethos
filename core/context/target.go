@@ -12,6 +12,8 @@ import (
 const (
 	KafkaTarget = "kafka"
 	S3Target    = "s3"
+	SqsTarget   = "sqs"
+	SnsTarget   = "sns"
 	PgSqlTarget = "pgsql"
 	MySqlTarget = "mysql"
 )
@@ -26,6 +28,10 @@ func NewTargetContext(targetSpec specs.Target) (interfaces.TargetInterface, erro
 		return target.NewPgsqlTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
 	case MySqlTarget:
 		return target.NewMysqlTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
+	case SqsTarget:
+		return target.NewSqsTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
+	case SnsTarget:
+		return target.NewSnsTarget(targetSpec, NewCodecContext(targetSpec.TargetSpecs.Codec))
 	default:
 		return nil, errors.New(fmt.Sprintf("target %s is invalid", targetSpec.Type))
 	}
