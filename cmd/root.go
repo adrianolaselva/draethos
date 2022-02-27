@@ -5,6 +5,8 @@ import (
 	"os"
 	"syscall"
 
+	"draethos.io.com/cmd/scaffold"
+	"draethos.io.com/cmd/start"
 	"draethos.io.com/pkg/color"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -20,7 +22,8 @@ const (
 )
 
 func Execute() {
-	initializeLogger()
+	logger, _ := zap.NewDevelopment()
+	zap.ReplaceGlobals(logger)
 
 	var release = "latest"
 	if value, ok := syscall.Getenv("VERSION"); ok {
@@ -33,39 +36,11 @@ func Execute() {
 		Long:    fmt.Sprintf("%s%s%s", color.Green, fmt.Sprintf(TerminalPrint, release), color.Reset),
 	}
 
-	startCommand.
-		PersistentFlags().
-		StringP(
-			"file",
-			"f",
-			"",
-			"file pipelines to be initialized")
-
-	startCommand.
-		PersistentFlags().
-		StringP(
-			"liveness",
-			"l",
-			"",
-			"initialize with health check")
-
-	startCommand.
-		PersistentFlags().
-		StringP(
-			"metrics",
-			"m",
-			"",
-			"initialize with metrics")
-
-	rootCmd.AddCommand(startCommand)
+	rootCmd.AddCommand(start.NewStartCommand().Build())
+	rootCmd.AddCommand(scaffold.NewScaffoldCommand().Build())
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(fmt.Sprintf("%s%s%s", color.Red, err.Error(), color.Reset))
 		os.Exit(1)
 	}
-}
-
-func initializeLogger() {
-	logger, _ := zap.NewDevelopment()
-	zap.ReplaceGlobals(logger)
 }

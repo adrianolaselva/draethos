@@ -1,0 +1,13 @@
+stream:
+  port: ""
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      specs:
+        timeoutMs: 1000
+    target:
+      specs:
+        flushInMilliseconds: 10000
