@@ -9,7 +9,7 @@ stream:
       type: kafka
       specs:
         topic: draethos.inbound
-        timeoutMs: 10000
+        timeoutMs: 1000
         configurations:
           group.id: 'draethos'
           bootstrap.servers: 'localhost:9093'

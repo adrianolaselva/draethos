@@ -1,7 +1,7 @@
 package specs
 
 type Stream struct {
-	Stream Base `yaml:"stream"`
+	Stream Base `yaml:"stream,omitempty"`
 }
 
 type Base struct {
@@ -12,51 +12,51 @@ type Base struct {
 }
 
 type Instance struct {
-	Source Source `yaml:"source"`
-	Target Target `yaml:"target"`
-	Dlq    Target `yaml:"dlq"`
+	Source Source `yaml:"source,omitempty"`
+	Target Target `yaml:"target,omitempty"`
+	Dlq    Target `yaml:"dlq,omitempty"`
 }
 
 type Source struct {
-	Type        string      `yaml:"type"`
-	Codec       string      `yaml:"codec"`
-	SourceSpecs SourceSpecs `yaml:"specs"`
+	Type        string      `yaml:"type,omitempty"`
+	Codec       string      `yaml:"codec,omitempty"`
+	SourceSpecs SourceSpecs `yaml:"specs,omitempty"`
 }
 
 type Target struct {
-	Type        string      `yaml:"type"`
-	TargetSpecs TargetSpecs `yaml:"specs"`
+	Type        string      `yaml:"type,omitempty"`
+	TargetSpecs TargetSpecs `yaml:"specs,omitempty"`
 }
 
 type SourceSpecs struct {
-	Topic          string                 `yaml:"topic"`
-	TimeoutMs      int                    `yaml:"timeoutMs"`
-	Configurations map[string]interface{} `yaml:"configurations"`
+	Topic          string                 `yaml:"topic,omitempty"`
+	TimeoutMs      int                    `yaml:"timeoutMs,omitempty"`
+	Configurations map[string]interface{} `yaml:"configurations,omitempty"`
 }
 
 type TargetSpecs struct {
-	Database            string                 `yaml:"database"`
-	Table               string                 `yaml:"table"`
-	KeyColumnName       string                 `yaml:"keyColumnName"`
-	Topic               string                 `yaml:"topic"`
-	Queue               string                 `yaml:"queue"`
-	QueueUrl            string                 `yaml:"queueUrl"`
-	TopicArn            string                 `yaml:"topicArn"`
-	Bucket              string                 `yaml:"bucket"`
-	Prefix              string                 `yaml:"prefix"`
-	Codec               string                 `yaml:"codec"`
-	BatchSize           int                    `yaml:"batchSize"`
-	BufferSize          uint64                 `yaml:"bufferSize"`
-	LineBreak           string                 `yaml:"lineBreak"`
-	FlushInMilliseconds int                    `yaml:"flushInMilliseconds"`
-	DelaySeconds        int64                  `yaml:"delaySeconds"`
-	Configurations      map[string]interface{} `yaml:"configurations"`
+	Database            string                 `yaml:"database,omitempty"`
+	Table               string                 `yaml:"table,omitempty"`
+	KeyColumnName       string                 `yaml:"keyColumnName,omitempty"`
+	Topic               string                 `yaml:"topic,omitempty"`
+	Queue               string                 `yaml:"queue,omitempty"`
+	QueueUrl            string                 `yaml:"queueUrl,omitempty"`
+	TopicArn            string                 `yaml:"topicArn,omitempty"`
+	Bucket              string                 `yaml:"bucket,omitempty"`
+	Prefix              string                 `yaml:"prefix,omitempty"`
+	Codec               string                 `yaml:"codec,omitempty"`
+	BatchSize           int                    `yaml:"batchSize,omitempty"`
+	BufferSize          uint64                 `yaml:"bufferSize,omitempty"`
+	LineBreak           string                 `yaml:"lineBreak,omitempty"`
+	FlushInMilliseconds int                    `yaml:"flushInMilliseconds,omitempty"`
+	DelaySeconds        int64                  `yaml:"delaySeconds,omitempty"`
+	Configurations      map[string]interface{} `yaml:"configurations,omitempty"`
 }
 
 type HealthCheck struct {
-	Endpoint string `yaml:"endpoint"`
+	Endpoint string `yaml:"endpoint,omitempty"`
 }
 
 type Metrics struct {
-	Endpoint string `yaml:"endpoint"`
+	Endpoint string `yaml:"endpoint,omitempty"`
 }
