@@ -72,11 +72,6 @@ func (s startCommand) Build() *cobra.Command {
 func (startCommand) runE(cmd *cobra.Command, args []string) error {
 	configBuilder := core.NewConfigBuilder()
 
-	varbose := false
-	if value, err := cmd.Flags().GetBool("verbose"); err == nil && value {
-		varbose = true
-	}
-
 	if value, err := cmd.Flags().GetString("file"); err == nil {
 		configBuilder.SetFile(value)
 	}
@@ -97,21 +92,13 @@ func (startCommand) runE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		zap.S().Error(err.Error())
 
-		if varbose {
-			return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
-		}
-
-		return errors.New("failed to build stream")
+		return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
 	}
 
-	if err = core.NewWorker(*config).Start(); err != nil {
+	if err = core.NewWorker(*config, configBuilder).Start(); err != nil {
 		zap.S().Error(err.Error())
 
-		if varbose {
-			return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
-		}
-
-		return errors.New("failed to initialize stream")
+		return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
 	}
 
 	return nil

@@ -1,0 +1,42 @@
+stream:
+  port: 9999
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      type: http
+      specs:
+        endpoint: /receipt-hooks
+        method: "GET,POST"
+        codec: json
+        configurations:
+          serverName: draethos-receipt-hooks
+          writeTimeout: 5
+          readTimeout: 5
+    target:
+      type: pgsql
+      specs:
+        database: transaction_extractor
+        table: receipt_hooks
+        keyColumnName: uuid
+        batchSize: 5
+        configurations:
+          host: '127.0.0.1'
+          port: 5432
+          user: 'root'
+          password: 'root'
+          sslmode: 'disable'
+    # target:
+    #   type: mysql
+    #   specs:
+    #     database: laravel
+    #     table: receipt_hooks
+    #     keyColumnName: id
+    #     batchSize: 5
+    #     configurations:
+    #       host: '127.0.0.1'
+    #       port: 3306
+    #       user: 'laravel'
+    #       password: 'root'

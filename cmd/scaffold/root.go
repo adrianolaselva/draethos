@@ -157,7 +157,7 @@ func (s scaffoldCommand) Build() *cobra.Command {
 			"instance.target.specs.codec",
 			"",
 			"",
-			"serialize event before send to target (default: json)")
+			"serialize event before send to target (default: json, yaml)")
 
 	scaffoldCommand.
 		PersistentFlags().

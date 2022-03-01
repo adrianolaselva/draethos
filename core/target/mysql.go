@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,16 +20,18 @@ import (
 )
 
 const (
-	MySqlInsertTemplate                     = "REPLACE INTO %s (%s) values %s;\n"
-	MySqlAlterTableAddPrimaryKeyTemplate    = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
-	MySqlAlterTableAddUniqueKeyColumn       = "ALTER TABLE %s ADD UNIQUE(%s);\n"
-	MySqlAlterTableAddColumnVarcharTemplate = "ALTER TABLE %s ADD COLUMN %s VARCHAR(255) %s;\n"
-	MySqlAlterTableAddColumnTextTemplate    = "ALTER TABLE %s ADD COLUMN %s TEXT %s;\n"
-	MySqlAlterTableAddColumnIntTemplate     = "ALTER TABLE %s ADD COLUMN %s INT %s;\n"
-	MySqlAlterTableAddColumnNumericTemplate = "ALTER TABLE %s ADD COLUMN %s NUMERIC(12,2) %s;\n"
-	MySqlAlterTableAddColumnBoolTemplate    = "ALTER TABLE %s ADD COLUMN %s BOOL NOT NULL DEFAULT false;\n"
-	MySqlAlterTableAddColumnJsonbTemplate   = "ALTER TABLE %s ADD COLUMN %s JSON NULL;\n"
-	MySqlVerifyHasColumn                    = "SELECT count(1) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='%s' AND COLUMN_NAME='%s'"
+	MySqlInsertTemplate                      = "REPLACE INTO %s (%s) values %s;\n"
+	MySqlAlterTableAddPrimaryKeyTemplate     = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
+	MySqlAlterTableAddUniqueKeyColumn        = "ALTER TABLE %s ADD UNIQUE(%s);\n"
+	MySqlAlterTableAddColumnVarcharTemplate  = "ALTER TABLE %s ADD COLUMN %s VARCHAR(255) %s;\n"
+	MySqlAlterTableAddColumnTextTemplate     = "ALTER TABLE %s ADD COLUMN %s TEXT %s;\n"
+	MySqlAlterTableAddColumnIntTemplate      = "ALTER TABLE %s ADD COLUMN %s INT %s;\n"
+	MySqlAlterTableAddColumnDateTemplate     = "ALTER TABLE %s ADD COLUMN %s DATETIME %s;\n"
+	MySqlAlterTableAddColumnDateTimeTemplate = "ALTER TABLE %s ADD COLUMN %s DATETIME %s;\n"
+	MySqlAlterTableAddColumnNumericTemplate  = "ALTER TABLE %s ADD COLUMN %s NUMERIC(12,2) %s;\n"
+	MySqlAlterTableAddColumnBoolTemplate     = "ALTER TABLE %s ADD COLUMN %s BOOL NOT NULL DEFAULT false;\n"
+	MySqlAlterTableAddColumnJsonbTemplate    = "ALTER TABLE %s ADD COLUMN %s JSON NULL;\n"
+	MySqlVerifyHasColumn                     = "SELECT count(1) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='%s' AND COLUMN_NAME='%s'"
 )
 
 type mysqlTarget struct {
@@ -140,6 +143,10 @@ func (p *mysqlTarget) Flush() error {
 	for _, row := range rows {
 		values := make([]string, 0)
 		for _, field := range p.columns {
+			if row[field] == "" {
+				row[field] = "NULL"
+			}
+
 			values = append(values, row[field])
 		}
 
@@ -183,6 +190,39 @@ func (p *mysqlTarget) hasColumn(column string) (bool, error) {
 	return false, nil
 }
 
+func (p *mysqlTarget) fieldIsDate(value interface{}) bool {
+	for _, pattern := range []string{
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))`,
+	} {
+		r, _ := regexp.Compile(pattern)
+		v, _ := value.(string)
+
+		if r.MatchString(v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *mysqlTarget) fieldIsDateTime(value interface{}) bool {
+	for _, pattern := range []string{
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T(0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]).(0[0-9]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T(0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]).(0[0-9]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]))`,
+	} {
+		r, _ := regexp.Compile(pattern)
+		v, _ := value.(string)
+
+		if r.MatchString(v) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, error) {
 	content, ok := element.Value.(map[string]interface{})
 	if !ok {
@@ -207,6 +247,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case int:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnIntTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnIntTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -216,6 +257,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case int8:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnIntTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnIntTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -225,6 +267,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case int16:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnIntTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnIntTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -234,6 +277,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case int32:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnIntTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnIntTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -243,6 +287,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case int64:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnIntTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnIntTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -252,6 +297,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case float32:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnNumericTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnNumericTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -261,6 +307,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case float64:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnNumericTemplate, p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnNumericTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldNumberDefault)); err != nil {
@@ -270,6 +317,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case bool:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnBoolTemplate, p.targetSpec.TargetSpecs.Table, k)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnBoolTemplate,
 						p.targetSpec.TargetSpecs.Table, k)); err != nil {
@@ -279,6 +327,7 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			case map[string]interface{}:
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
+					zap.S().Debugf(MySqlAlterTableAddColumnJsonbTemplate, p.targetSpec.TargetSpecs.Table, k)
 					if _, err := p.db.Exec(fmt.Sprintf(
 						MySqlAlterTableAddColumnJsonbTemplate,
 						p.targetSpec.TargetSpecs.Table, k)); err != nil {
@@ -295,10 +344,20 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 					}
 				}
 			default:
+				alterTableAddColumnTemplate := MySqlAlterTableAddColumnVarcharTemplate
+
+				if p.fieldIsDate(v) {
+					alterTableAddColumnTemplate = MySqlAlterTableAddColumnDateTemplate
+				}
+
+				if p.fieldIsDateTime(v) {
+					alterTableAddColumnTemplate = MySqlAlterTableAddColumnDateTimeTemplate
+				}
+
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
 					if _, err := p.db.Exec(fmt.Sprintf(
-						MySqlAlterTableAddColumnVarcharTemplate,
+						alterTableAddColumnTemplate,
 						p.targetSpec.TargetSpecs.Table, k, fieldVarcharDefault)); err != nil {
 						zap.S().Warnf("failed to create column %s: %s\n", k, err.Error())
 					}
@@ -362,6 +421,10 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			values[k] = fmt.Sprintf("'%s'", data)
 		default:
 			values[k] = fmt.Sprintf("'%v'", v)
+
+			if p.fieldIsDateTime(v) {
+				values[k] = strings.ReplaceAll(fmt.Sprintf("'%v'", v), "T", " ")
+			}
 		}
 	}
 

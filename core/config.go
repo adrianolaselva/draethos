@@ -4,15 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"strings"
-	"time"
 
 	"draethos.io.com/pkg/streams/specs"
-	"github.com/gorilla/mux"
-	"github.com/heptiolabs/healthcheck"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -21,12 +15,12 @@ type ConfigBuilder interface {
 	validateExtension() error
 	SetPort(port string) ConfigBuilder
 	SetFile(filePath string) ConfigBuilder
+	IsEnabledLiveness() bool
+	IsEnabledMetrics() bool
 	EnableLiveness() ConfigBuilder
 	EnableMetrics() ConfigBuilder
+	GetHttpPort() string
 	Build() (*specs.Stream, error)
-
-	initializeHealthCheck(checkEndpoint string)
-	initializePrometheus(endpoint string)
 }
 
 type configBuilder struct {
@@ -34,13 +28,11 @@ type configBuilder struct {
 	enableLiveness bool
 	enableMetrics  bool
 	httpPort       string
-	router         *mux.Router
 	file           []byte
 }
 
 func NewConfigBuilder() ConfigBuilder {
-	return &configBuilder{
-		router: &mux.Router{}}
+	return &configBuilder{}
 }
 
 func (c *configBuilder) Build() (*specs.Stream, error) {
@@ -57,36 +49,19 @@ func (c *configBuilder) Build() (*specs.Stream, error) {
 		return nil, err
 	}
 
-	if c.httpPort != "0" {
-		stream.Stream.Port = c.httpPort
-	}
-
-	if c.enableLiveness {
-		c.initializeHealthCheck(stream.Stream.HealthCheck.Endpoint)
-		zap.S().Debugf("initialize endpoint liveness: http://localhost:%s%s",
-			stream.Stream.Port,
-			stream.Stream.HealthCheck.Endpoint)
-	}
-
-	if c.enableMetrics {
-		c.initializePrometheus(stream.Stream.Metrics.Endpoint)
-		zap.S().Debugf("initialize endpoint prometheus: http://localhost:%s%s",
-			stream.Stream.Port,
-			stream.Stream.Metrics.Endpoint)
-	}
-
-	if c.enableMetrics || c.enableLiveness {
-		srv := &http.Server{
-			Handler:      c.router,
-			Addr:         fmt.Sprintf("0.0.0.0:%s", stream.Stream.Port),
-			WriteTimeout: 15 * time.Second,
-			ReadTimeout:  15 * time.Second,
-		}
-
-		go srv.ListenAndServe()
-	}
-
 	return stream, nil
+}
+
+func (c *configBuilder) GetHttpPort() string {
+	return c.httpPort
+}
+
+func (c *configBuilder) IsEnabledLiveness() bool {
+	return c.enableLiveness
+}
+
+func (c *configBuilder) IsEnabledMetrics() bool {
+	return c.enableMetrics
 }
 
 func (c *configBuilder) EnableLiveness() ConfigBuilder {
@@ -138,21 +113,4 @@ func (c *configBuilder) deserializeYaml() (*specs.Stream, error) {
 	}
 
 	return &stream, nil
-}
-
-func (c *configBuilder) initializeHealthCheck(checkEndpoint string) {
-	var health = healthcheck.
-		NewHandler()
-
-	health.AddLivenessCheck("goroutine-threshold", healthcheck.HTTPGetCheck("", 100))
-	health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
-	health.AddReadinessCheck("health-name", func() error {
-		return nil
-	})
-
-	c.router.HandleFunc(checkEndpoint, health.LiveEndpoint)
-}
-
-func (c *configBuilder) initializePrometheus(endpoint string) {
-	c.router.Handle(endpoint, promhttp.Handler())
 }
