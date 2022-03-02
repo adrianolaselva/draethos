@@ -1,0 +1,36 @@
+stream:
+  port: 9999
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      type: csv
+      specs:
+        path: ./examples/example-6/share/files
+    target:
+      type: pgsql
+      specs:
+        database: transaction_extractor
+        table: ibge_budget_cities
+        keyColumnName: uuid
+        batchSize: 1000
+        configurations:
+          host: '127.0.0.1'
+          port: 5432
+          user: 'root'
+          password: 'root'
+          sslmode: 'disable'
+    # target:
+    #   type: mysql
+    #   specs:
+    #     database: laravel
+    #     table: receipt_hooks
+    #     keyColumnName: id
+    #     batchSize: 5
+    #     configurations:
+    #       host: '127.0.0.1'
+    #       port: 3306
+    #       user: 'laravel'
+    #       password: 'root'

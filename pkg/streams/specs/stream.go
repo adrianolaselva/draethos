@@ -33,6 +33,7 @@ type SourceSpecs struct {
 	TimeoutMs      int                    `yaml:"timeoutMs,omitempty"`
 	Endpoint       string                 `yaml:"endpoint,omitempty"`
 	Method         string                 `yaml:"method,omitempty"`
+	Path           string                 `yaml:"path,omitempty"`
 	Configurations map[string]interface{} `yaml:"configurations,omitempty"`
 }
 
