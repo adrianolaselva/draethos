@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,15 +19,17 @@ import (
 )
 
 const (
-	PgSqlInsertTemplate                     = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
-	PgSqlAlterTableAddPrimaryKeyTemplate    = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
-	PgSqlAlterTableAddUniqueKeyColumn       = "ALTER TABLE %s ADD UNIQUE(%s);\n"
-	PgSqlAlterTableAddColumnVarcharTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
-	PgSqlAlterTableAddColumnTextTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
-	PgSqlAlterTableAddColumnIntTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s INT %s;\n"
-	PgSqlAlterTableAddColumnNumericTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s NUMERIC(12,2) %s;\n"
-	PgSqlAlterTableAddColumnBoolTemplate    = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s BOOL NOT NULL DEFAULT false;\n"
-	PgSqlAlterTableAddColumnJsonbTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s JSONB NULL;\n"
+	PgSqlInsertTemplate                       = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
+	PgSqlAlterTableAddPrimaryKeyTemplate      = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
+	PgSqlAlterTableAddUniqueKeyColumn         = "ALTER TABLE %s ADD UNIQUE(%s);\n"
+	PgSqlAlterTableAddColumnVarcharTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
+	PgSqlAlterTableAddColumnTextTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
+	PgSqlAlterTableAddColumnIntTemplate       = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s INT %s;\n"
+	PgSqlAlterTableAddColumnDateTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s DATE %s;\n"
+	PgSqlAlterTableAddColumnTimestampTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TIMESTAMP %s;\n"
+	PgSqlAlterTableAddColumnNumericTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s NUMERIC(12,2) %s;\n"
+	PgSqlAlterTableAddColumnBoolTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s BOOL NOT NULL DEFAULT false;\n"
+	PgSqlAlterTableAddColumnJsonbTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s JSONB NULL;\n"
 )
 
 type pgsqlTarget struct {
@@ -206,8 +209,18 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 					PgSqlAlterTableAddColumnJsonbTemplate,
 					p.targetSpec.TargetSpecs.Table, k))
 			default:
+				alterTableAddColumnTemplate := PgSqlAlterTableAddColumnVarcharTemplate
+
+				if p.fieldIsDate(v) {
+					alterTableAddColumnTemplate = PgSqlAlterTableAddColumnDateTemplate
+				}
+
+				if p.fieldIsDateTime(v) {
+					alterTableAddColumnTemplate = PgSqlAlterTableAddColumnTimestampTemplate
+				}
+
 				bufferRx.WriteString(fmt.Sprintf(
-					PgSqlAlterTableAddColumnVarcharTemplate,
+					alterTableAddColumnTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldVarcharDefault))
 			}
 
@@ -264,7 +277,12 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 			data, _ := json.Marshal(v)
 			values = append(values, fmt.Sprintf("'%s'", data))
 		default:
-			values = append(values, fmt.Sprintf("'%v'", v))
+			value := fmt.Sprintf("'%v'", v)
+			if p.fieldIsDateTime(v) {
+				value = strings.ReplaceAll(fmt.Sprintf("'%v'", v), "T", " ")
+			}
+
+			values = append(values, value)
 		}
 	}
 
@@ -292,4 +310,37 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 
 func (p *pgsqlTarget) Close() error {
 	return p.db.Close()
+}
+
+func (p *pgsqlTarget) fieldIsDate(value interface{}) bool {
+	for _, pattern := range []string{
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))`,
+	} {
+		r, _ := regexp.Compile(pattern)
+		v, _ := value.(string)
+
+		if r.MatchString(v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *pgsqlTarget) fieldIsDateTime(value interface{}) bool {
+	for _, pattern := range []string{
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T(0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]).(0[0-9]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T(0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]).(0[0-9]\d|3[01]))`,
+		`([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|[24]\d|3[01]):(0[0-9]|[59]\d|3[01]):(0[0-9]|[59]\d|3[01]))`,
+	} {
+		r, _ := regexp.Compile(pattern)
+		v, _ := value.(string)
+
+		if r.MatchString(v) {
+			return true
+		}
+	}
+
+	return false
 }
