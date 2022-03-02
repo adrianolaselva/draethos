@@ -13,6 +13,7 @@ import (
 const (
 	KafkaSource = "kafka"
 	HttpSource  = "http"
+	CsvSource   = "csv"
 )
 
 func NewSourceContext(stream specs.Stream,
@@ -33,6 +34,11 @@ func NewSourceContext(stream specs.Stream,
 			NewCodecContext(stream.Stream.Instance.Source.Codec),
 			router,
 			port)
+	case CsvSource:
+		return source.NewCsvSource(stream.Stream.Instance.Source,
+			target,
+			dlq,
+			NewCodecContext(stream.Stream.Instance.Source.Codec))
 	default:
 		return nil, errors.New(fmt.Sprintf("source %s is invalid", stream.Stream.Instance.Target.Type))
 	}
