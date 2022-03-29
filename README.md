@@ -49,7 +49,7 @@ As an option to create a new stream it is possible to use the scaffold generator
 ```sh
 ./draethos generate \
         --port 8000 \
-	      --export-path ./share/pipeline.yaml \
+        --export-path ./share/pipeline.yaml \
         --instance.source.type kafka \
         --instance.source.specs.topic topic.source \
         --instance.source.specs.configurations "group.id=draethos" \
