@@ -1,11 +1,11 @@
 package context
 
 import (
+	interfaces2 "draethos.io.com/internal/interfaces"
+	source2 "draethos.io.com/internal/source"
 	"errors"
 	"fmt"
 
-	"draethos.io.com/core/interfaces"
-	"draethos.io.com/core/source"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/gorilla/mux"
 )
@@ -17,25 +17,25 @@ const (
 )
 
 func NewSourceContext(stream specs.Stream,
-	target interfaces.TargetInterface,
-	dlq interfaces.TargetInterface,
+	target interfaces2.TargetInterface,
+	dlq interfaces2.TargetInterface,
 	router *mux.Router,
-	port string) (interfaces.SourceInterface, error) {
+	port string) (interfaces2.SourceInterface, error) {
 	switch stream.Stream.Instance.Source.Type {
 	case KafkaSource:
-		return source.NewKafkaSource(stream.Stream.Instance.Source,
+		return source2.NewKafkaSource(stream.Stream.Instance.Source,
 			target,
 			dlq,
 			NewCodecContext(stream.Stream.Instance.Source.Codec))
 	case HttpSource:
-		return source.NewHttpSource(stream.Stream.Instance.Source,
+		return source2.NewHttpSource(stream.Stream.Instance.Source,
 			target,
 			dlq,
 			NewCodecContext(stream.Stream.Instance.Source.Codec),
 			router,
 			port)
 	case CsvSource:
-		return source.NewCsvSource(stream.Stream.Instance.Source,
+		return source2.NewCsvSource(stream.Stream.Instance.Source,
 			target,
 			dlq,
 			NewCodecContext(stream.Stream.Instance.Source.Codec))

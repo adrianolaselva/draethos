@@ -1,7 +1,7 @@
 package target
 
 import (
-	"draethos.io.com/core/interfaces"
+	"draethos.io.com/internal/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"encoding/xml"
 )

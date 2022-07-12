@@ -2,6 +2,7 @@ package source
 
 import (
 	"crypto/md5"
+	interfaces2 "draethos.io.com/internal/interfaces"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"go.uber.org/zap"
 )
@@ -19,16 +19,16 @@ import (
 type csvSource struct {
 	sync.Mutex
 	sourceSpec specs.Source
-	target     interfaces.TargetInterface
-	dlq        interfaces.TargetInterface
-	codec      interfaces.CodecInterface
+	target     interfaces2.TargetInterface
+	dlq        interfaces2.TargetInterface
+	codec      interfaces2.CodecInterface
 }
 
 func NewCsvSource(sourceSpec specs.Source,
-	target interfaces.TargetInterface,
-	dlq interfaces.TargetInterface,
-	codec interfaces.CodecInterface,
-) (interfaces.SourceInterface, error) {
+	target interfaces2.TargetInterface,
+	dlq interfaces2.TargetInterface,
+	codec interfaces2.CodecInterface,
+) (interfaces2.SourceInterface, error) {
 	return &csvSource{
 		sourceSpec: sourceSpec,
 		target:     target,

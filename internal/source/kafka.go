@@ -1,30 +1,30 @@
 package source
 
 import (
+	interfaces2 "draethos.io.com/internal/interfaces"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 )
 
 type kafkaSource struct {
 	sourceSpec specs.Source
-	target     interfaces.TargetInterface
-	dlq        interfaces.TargetInterface
-	codec      interfaces.CodecInterface
+	target     interfaces2.TargetInterface
+	dlq        interfaces2.TargetInterface
+	codec      interfaces2.CodecInterface
 	configMap  kafka.ConfigMap
 }
 
 func NewKafkaSource(sourceSpec specs.Source,
-	target interfaces.TargetInterface,
-	dlq interfaces.TargetInterface,
-	codec interfaces.CodecInterface) (interfaces.SourceInterface, error) {
+	target interfaces2.TargetInterface,
+	dlq interfaces2.TargetInterface,
+	codec interfaces2.CodecInterface) (interfaces2.SourceInterface, error) {
 	return kafkaSource{sourceSpec: sourceSpec, target: target, dlq: dlq, codec: codec, configMap: kafka.ConfigMap{
 		"go.application.rebalance.enable": true,
 		"enable.partition.eof":            true,

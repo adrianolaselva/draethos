@@ -1,12 +1,12 @@
 package scaffold
 
 import (
+	"draethos.io.com/internal/interfaces"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/color"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/spf13/cobra"

@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"crypto/md5"
 	"database/sql"
+	"draethos.io.com/internal/interfaces"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"

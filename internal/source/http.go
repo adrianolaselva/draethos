@@ -3,6 +3,7 @@ package source
 import (
 	"crypto/md5"
 	"crypto/tls"
+	interfaces2 "draethos.io.com/internal/interfaces"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -22,9 +22,9 @@ import (
 
 type httpSource struct {
 	sourceSpec   specs.Source
-	target       interfaces.TargetInterface
-	dlq          interfaces.TargetInterface
-	codec        interfaces.CodecInterface
+	target       interfaces2.TargetInterface
+	dlq          interfaces2.TargetInterface
+	codec        interfaces2.CodecInterface
 	router       *mux.Router
 	port         string
 	writeTimeout int64
@@ -36,11 +36,11 @@ type httpSource struct {
 const MethodsAllowedDefault = "GET,POST"
 
 func NewHttpSource(sourceSpec specs.Source,
-	target interfaces.TargetInterface,
-	dlq interfaces.TargetInterface,
-	codec interfaces.CodecInterface,
+	target interfaces2.TargetInterface,
+	dlq interfaces2.TargetInterface,
+	codec interfaces2.CodecInterface,
 	router *mux.Router,
-	port string) (interfaces.SourceInterface, error) {
+	port string) (interfaces2.SourceInterface, error) {
 	return httpSource{
 		sourceSpec: sourceSpec,
 		target:     target,

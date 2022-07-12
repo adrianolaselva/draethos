@@ -86,24 +86,25 @@ Available connectors
 
 ### Sources
 
-|  Id |  Source |
-|---|---|
-| kafka  | Apache Kafka  |
-| http   | HTTP request  |
+| Id    | Source       |
+|-------|--------------|
+| kafka | Apache Kafka |
+| http  | HTTP request |
 
 ### Targets
 
-|  Id |  Target |
-|---|---|
-| kafka  | Apache Kafka  |
-| s3  | AWS S3  |
-| sqs  | AWS SQS  |
-| sns | AWS SNS  |
-| pgsql  | Postgres  |
-| mysql  | Mysql  |
+| Id    | Target       |
+|-------|--------------|
+| kafka | Apache Kafka |
+| s3    | AWS S3       |
+| sqs   | AWS SQS      |
+| sns   | AWS SNS      |
+| pgsql | Postgres     |
+| mysql | Mysql        |
 
 ## References
 
+- [golang-standards](https://github.com/golang-standards/project-layout)
 - [Kafka](https://kafka.apache.org/)
 - [Postgres](https://www.postgresql.org/)
 - [Mysql](https://www.mysql.com/)

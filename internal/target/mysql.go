@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"crypto/md5"
 	"database/sql"
+	"draethos.io.com/internal/interfaces"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -12,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"

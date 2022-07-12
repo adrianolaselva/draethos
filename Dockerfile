@@ -1,7 +1,10 @@
-FROM golang:1.14.4-stretch as builder
+FROM golang:1.18.3-stretch as builder
 
 ARG VERSION
+
 ENV VERSION=$VERSION
+ENV GOOS=linux
+ENV GOARCH=amd64
 
 WORKDIR /app
 

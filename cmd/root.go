@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"draethos.io.com/cmd/scaffold"
+	"draethos.io.com/cmd/start"
 	"fmt"
 	"os"
 	"syscall"
 
-	"draethos.io.com/cmd/scaffold"
-	"draethos.io.com/cmd/start"
 	"draethos.io.com/pkg/color"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"

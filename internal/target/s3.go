@@ -5,6 +5,7 @@ import (
 	"container/list"
 	"context"
 	"crypto/md5"
+	interfaces2 "draethos.io.com/internal/interfaces"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -36,13 +36,13 @@ type s3Target struct {
 	sync.Mutex
 	session    *session.Session
 	targetSpec specs.Target
-	codec      interfaces.CodecInterface
+	codec      interfaces2.CodecInterface
 	fileName   string
 	queue      *list.List
 	bufferLen  uint64
 }
 
-func NewS3Target(targetSpec specs.Target, codec interfaces.CodecInterface) (interfaces.TargetInterface, error) {
+func NewS3Target(targetSpec specs.Target, codec interfaces2.CodecInterface) (interfaces2.TargetInterface, error) {
 	return &s3Target{targetSpec: targetSpec, codec: codec, queue: list.New()}, nil
 }
 

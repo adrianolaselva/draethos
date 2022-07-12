@@ -3,12 +3,12 @@ package target
 import (
 	"bytes"
 	"container/list"
+	interfaces2 "draethos.io.com/internal/interfaces"
 	"encoding/json"
 	"os"
 	"sync"
 	"time"
 
-	"draethos.io.com/core/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -27,13 +27,13 @@ type snsTarget struct {
 	sync.Mutex
 	session    *session.Session
 	targetSpec specs.Target
-	codec      interfaces.CodecInterface
+	codec      interfaces2.CodecInterface
 	fileName   string
 	queue      *list.List
 	bufferLen  uint64
 }
 
-func NewSnsTarget(targetSpec specs.Target, codec interfaces.CodecInterface) (interfaces.TargetInterface, error) {
+func NewSnsTarget(targetSpec specs.Target, codec interfaces2.CodecInterface) (interfaces2.TargetInterface, error) {
 	return &snsTarget{targetSpec: targetSpec, codec: codec, queue: list.New()}, nil
 }
 

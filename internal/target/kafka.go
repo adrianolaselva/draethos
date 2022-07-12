@@ -2,11 +2,11 @@ package target
 
 import (
 	"container/list"
-	"draethos.io.com/core/interfaces"
+	"draethos.io.com/internal/interfaces"
 	"draethos.io.com/pkg/streams/specs"
 	"fmt"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"go.uber.org/zap"
-	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 	"sync"
 )
 

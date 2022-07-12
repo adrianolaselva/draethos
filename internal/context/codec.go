@@ -1,8 +1,8 @@
 package context
 
 import (
-	target "draethos.io.com/core/codec"
-	"draethos.io.com/core/interfaces"
+	target2 "draethos.io.com/internal/codec"
+	"draethos.io.com/internal/interfaces"
 	"go.uber.org/zap"
 )
 
@@ -15,13 +15,13 @@ const (
 func NewCodecContext(codec string) interfaces.CodecInterface {
 	switch codec {
 	case JsonCodec:
-		return target.NewJsonCodec()
+		return target2.NewJsonCodec()
 	case YamlCodec:
-		return target.NewYamlCodec()
+		return target2.NewYamlCodec()
 	case XmlCodec:
-		return target.NewYamlCodec()
+		return target2.NewYamlCodec()
 	default:
 		zap.S().Infof("%s codec not defined, using %s as standard", codec, JsonCodec)
-		return target.NewJsonCodec()
+		return target2.NewJsonCodec()
 	}
 }

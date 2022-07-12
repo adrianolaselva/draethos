@@ -1,11 +1,11 @@
 package start
 
 import (
+	"draethos.io.com/internal"
+	"draethos.io.com/internal/interfaces"
 	"errors"
 	"fmt"
 
-	"draethos.io.com/core"
-	"draethos.io.com/core/interfaces"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -70,7 +70,7 @@ func (s startCommand) Build() *cobra.Command {
 }
 
 func (startCommand) runE(cmd *cobra.Command, args []string) error {
-	configBuilder := core.NewConfigBuilder()
+	configBuilder := internal.NewConfigBuilder()
 
 	if value, err := cmd.Flags().GetString("file"); err == nil {
 		configBuilder.SetFile(value)
@@ -95,7 +95,7 @@ func (startCommand) runE(cmd *cobra.Command, args []string) error {
 		return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
 	}
 
-	if err = core.NewWorker(*config, configBuilder).Start(); err != nil {
+	if err = internal.NewWorker(*config, configBuilder).Start(); err != nil {
 		zap.S().Error(err.Error())
 
 		return errors.New(fmt.Sprintf("failed to initialize stream: %s", err.Error()))
