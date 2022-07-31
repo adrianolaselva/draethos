@@ -22,14 +22,14 @@ const (
 	PgSqlInsertTemplate                       = "INSERT INTO %s (%s) values (%s) ON CONFLICT (%s) DO NOTHING;\n"
 	PgSqlAlterTableAddPrimaryKeyTemplate      = "CREATE TABLE IF NOT EXISTS %s (%s varchar(90) NOT NULL, PRIMARY KEY (%s));\n"
 	PgSqlAlterTableAddUniqueKeyColumn         = "ALTER TABLE %s ADD UNIQUE(%s);\n"
-	PgSqlAlterTableAddColumnVarcharTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR(255) %s;\n"
-	PgSqlAlterTableAddColumnTextTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TEXT %s;\n"
-	PgSqlAlterTableAddColumnIntTemplate       = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s INT %s;\n"
-	PgSqlAlterTableAddColumnDateTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s DATE %s;\n"
-	PgSqlAlterTableAddColumnTimestampTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s TIMESTAMP %s;\n"
-	PgSqlAlterTableAddColumnNumericTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s NUMERIC(12,2) %s;\n"
-	PgSqlAlterTableAddColumnBoolTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s BOOL NOT NULL DEFAULT false;\n"
-	PgSqlAlterTableAddColumnJsonbTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s JSONB NULL;\n"
+	PgSqlAlterTableAddColumnVarcharTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" VARCHAR(255) %s;\n"
+	PgSqlAlterTableAddColumnTextTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" TEXT %s;\n"
+	PgSqlAlterTableAddColumnIntTemplate       = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" INT %s;\n"
+	PgSqlAlterTableAddColumnDateTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" DATE %s;\n"
+	PgSqlAlterTableAddColumnTimestampTemplate = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" TIMESTAMP %s;\n"
+	PgSqlAlterTableAddColumnNumericTemplate   = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" NUMERIC(12,2) %s;\n"
+	PgSqlAlterTableAddColumnBoolTemplate      = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" BOOL NOT NULL DEFAULT false;\n"
+	PgSqlAlterTableAddColumnJsonbTemplate     = "ALTER TABLE %s ADD COLUMN IF NOT EXISTS \"%s\" JSONB NULL;\n"
 )
 
 type pgsqlTarget struct {
@@ -104,13 +104,15 @@ func (p *pgsqlTarget) Initialize() error {
 	return nil
 }
 
-func (p *pgsqlTarget) Attach(_ string, data map[string]interface{}) error {
+func (p *pgsqlTarget) Attach(key string, data map[string]interface{}) error {
 	p.Lock()
 	defer p.Unlock()
 
-	p.queue.PushBack(data)
+	if key != "" {
+		data[p.targetSpec.TargetSpecs.KeyColumnName] = key
+	}
 
-	zap.S().Debugf("queue size: %v", p.queue.Len())
+	p.queue.PushBack(data)
 
 	return nil
 }
@@ -140,8 +142,6 @@ func (p *pgsqlTarget) Flush() error {
 			p.queue.Remove(element)
 		}
 	}
-
-	zap.S().Debugf("sql: \n%s", bufferRx.String())
 
 	if _, err := p.db.Exec(bufferRx.String()); err != nil {
 		return err
@@ -219,6 +219,10 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 					alterTableAddColumnTemplate = PgSqlAlterTableAddColumnTimestampTemplate
 				}
 
+				if p.fieldIsText(v) {
+					alterTableAddColumnTemplate = PgSqlAlterTableAddColumnTextTemplate
+				}
+
 				bufferRx.WriteString(fmt.Sprintf(
 					alterTableAddColumnTemplate,
 					p.targetSpec.TargetSpecs.Table, k, fieldVarcharDefault))
@@ -272,12 +276,15 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 			values = append(values, "null")
 		case map[string]interface{}:
 			data, _ := json.Marshal(v)
-			values = append(values, fmt.Sprintf("'%s", data))
+			values = append(values, fmt.Sprintf("'%s'", data))
 		case []interface{}:
 			data, _ := json.Marshal(v)
 			values = append(values, fmt.Sprintf("'%s'", data))
 		default:
-			value := fmt.Sprintf("'%v'", v)
+			value := fmt.Sprintf("%v", v)
+			value = strings.ReplaceAll(value, "'", `''`)
+			value = fmt.Sprintf("'%v'", value)
+
 			if p.fieldIsDateTime(v) {
 				value = strings.ReplaceAll(fmt.Sprintf("'%v'", v), "T", " ")
 			}
@@ -298,6 +305,10 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 		values = append(values, fmt.Sprintf("'%x'", md5.Sum([]byte(strings.Join(values, ",")))))
 	}
 
+	for k, v := range columns {
+		columns[k] = fmt.Sprintf("\"%s\"", v)
+	}
+
 	bufferRx.WriteString(fmt.Sprintf(
 		PgSqlInsertTemplate,
 		p.targetSpec.TargetSpecs.Table,
@@ -310,6 +321,12 @@ func (p *pgsqlTarget) buildCommands(bufferRx *strings.Builder, element list.Elem
 
 func (p *pgsqlTarget) Close() error {
 	return p.db.Close()
+}
+
+func (p *pgsqlTarget) fieldIsText(value interface{}) bool {
+	v, _ := value.(string)
+
+	return len(v) > 255
 }
 
 func (p *pgsqlTarget) fieldIsDate(value interface{}) bool {

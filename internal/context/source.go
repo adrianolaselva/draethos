@@ -14,6 +14,7 @@ const (
 	KafkaSource = "kafka"
 	HttpSource  = "http"
 	CsvSource   = "csv"
+	JsonLSource = "jsonl"
 )
 
 func NewSourceContext(stream specs.Stream,
@@ -36,6 +37,11 @@ func NewSourceContext(stream specs.Stream,
 			port)
 	case CsvSource:
 		return source2.NewCsvSource(stream.Stream.Instance.Source,
+			target,
+			dlq,
+			NewCodecContext(stream.Stream.Instance.Source.Codec))
+	case JsonLSource:
+		return source2.NewJsonLSource(stream.Stream.Instance.Source,
 			target,
 			dlq,
 			NewCodecContext(stream.Stream.Instance.Source.Codec))

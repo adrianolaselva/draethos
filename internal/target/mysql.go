@@ -101,13 +101,15 @@ func (p *mysqlTarget) Initialize() error {
 	return nil
 }
 
-func (p *mysqlTarget) Attach(_ string, data map[string]interface{}) error {
+func (p *mysqlTarget) Attach(key string, data map[string]interface{}) error {
 	p.Lock()
 	defer p.Unlock()
 
-	p.queue.PushBack(data)
+	if key != "" {
+		data[p.targetSpec.TargetSpecs.KeyColumnName] = key
+	}
 
-	zap.S().Debugf("queue size: %v", p.queue.Len())
+	p.queue.PushBack(data)
 
 	return nil
 }
@@ -175,7 +177,7 @@ func (p *mysqlTarget) containColumn(key string) *int {
 }
 
 func (p *mysqlTarget) hasColumn(column string) (bool, error) {
-	var qtdRows int = 0
+	var qtdRows = 0
 	err := p.db.QueryRow(fmt.Sprintf(
 		MySqlVerifyHasColumn,
 		p.targetSpec.TargetSpecs.Table, column)).Scan(&qtdRows)
@@ -188,6 +190,12 @@ func (p *mysqlTarget) hasColumn(column string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (p *mysqlTarget) fieldIsText(value interface{}) bool {
+	v, _ := value.(string)
+
+	return len(v) > 255
 }
 
 func (p *mysqlTarget) fieldIsDate(value interface{}) bool {
@@ -354,6 +362,10 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 					alterTableAddColumnTemplate = MySqlAlterTableAddColumnDateTimeTemplate
 				}
 
+				if p.fieldIsText(v) {
+					alterTableAddColumnTemplate = MySqlAlterTableAddColumnTextTemplate
+				}
+
 				if exists, _ := p.hasColumn(k); !exists {
 					zap.S().Infof("column %s not found, running build script...", k)
 					if _, err := p.db.Exec(fmt.Sprintf(
@@ -420,7 +432,11 @@ func (p *mysqlTarget) buildCommands(element list.Element) (map[string]string, er
 			data, _ := json.Marshal(v)
 			values[k] = fmt.Sprintf("'%s'", data)
 		default:
-			values[k] = fmt.Sprintf("'%v'", v)
+			value := fmt.Sprintf("%v", v)
+			value = strings.ReplaceAll(value, "'", `''`)
+			value = fmt.Sprintf("'%v'", value)
+
+			values[k] = fmt.Sprintf("'%v'", value)
 
 			if p.fieldIsDateTime(v) {
 				values[k] = strings.ReplaceAll(fmt.Sprintf("'%v'", v), "T", " ")

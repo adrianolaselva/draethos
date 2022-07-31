@@ -1,12 +1,12 @@
 package source
 
 import (
+	"bufio"
 	"crypto/md5"
 	interfaces2 "draethos.io.com/internal/interfaces"
-	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type csvSource struct {
+type jsonLSource struct {
 	sync.Mutex
 	sourceSpec specs.Source
 	target     interfaces2.TargetInterface
@@ -24,12 +24,12 @@ type csvSource struct {
 	codec      interfaces2.CodecInterface
 }
 
-func NewCsvSource(sourceSpec specs.Source,
+func NewJsonLSource(sourceSpec specs.Source,
 	target interfaces2.TargetInterface,
 	dlq interfaces2.TargetInterface,
 	codec interfaces2.CodecInterface,
 ) (interfaces2.SourceInterface, error) {
-	return &csvSource{
+	return &jsonLSource{
 		sourceSpec: sourceSpec,
 		target:     target,
 		dlq:        dlq,
@@ -37,7 +37,7 @@ func NewCsvSource(sourceSpec specs.Source,
 	}, nil
 }
 
-func (c *csvSource) Worker() error {
+func (c *jsonLSource) Worker() error {
 	if err := c.target.Initialize(); err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (c *csvSource) Worker() error {
 
 	path, err := os.Stat(c.sourceSpec.SourceSpecs.Path)
 	if err != nil {
-		zap.S().Errorf("csv file/dorectory %s not found: %s", c.sourceSpec.SourceSpecs.Path, err.Error())
+		zap.S().Errorf("jsonl file/directory %s not found: %s", c.sourceSpec.SourceSpecs.Path, err.Error())
 		return err
 	}
 
@@ -61,7 +61,7 @@ func (c *csvSource) Worker() error {
 	return c.processFile(c.sourceSpec.SourceSpecs.Path)
 }
 
-func (c *csvSource) processDir(path string) error {
+func (c *jsonLSource) processDir(path string) error {
 	c.Lock()
 	defer c.Unlock()
 
@@ -71,12 +71,12 @@ func (c *csvSource) processDir(path string) error {
 	}
 
 	for _, v := range files {
-		if !strings.HasSuffix(v, ".csv") {
+		if !strings.HasSuffix(v, ".jsonl") {
 			zap.S().Warnf("invalid file %s", v)
 			continue
 		}
 
-		if err := c.processFile(v); err != nil {
+		if err = c.processFile(v); err != nil {
 			return err
 		}
 	}
@@ -84,58 +84,31 @@ func (c *csvSource) processDir(path string) error {
 	return nil
 }
 
-func (c *csvSource) processFile(filename string) error {
+func (c *jsonLSource) processFile(filename string) error {
 	if _, err := os.Stat(filename); err != nil {
-		zap.S().Errorf("csv file %s not found: %s", filename, err.Error())
+		zap.S().Errorf("jsonl file %s not found: %s", filename, err.Error())
 		return err
 	}
 
 	file, err := os.Open(filename)
 	if err != nil {
-		zap.S().Errorf("failed to load csv file %s: %s", filename, err.Error())
+		zap.S().Errorf("failed to load jsonl file %s: %s", filename, err.Error())
 		return err
 	}
 
 	defer file.Close()
 
-	reader := csv.NewReader(file)
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
 
-	lines := 0
-	var columns []string
-	for {
-		records, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			zap.S().Errorf("failed to read columns csv file %s: %s", filename, err.Error())
+	for scanner.Scan() {
+		var payload = make(map[string]interface{}, 0)
+		if err = json.Unmarshal(scanner.Bytes(), &payload); err != nil {
 			return err
 		}
 
-		if records == nil {
-			break
-		}
-
-		if lines == 0 {
-			for _, v := range records {
-				columns = append(columns, strings.ToLower(strings.ReplaceAll(v, " ", "_")))
-			}
-
-			lines++
-
-			zap.S().Debugf("columns %s", records)
-
-			continue
-		}
-
-		payload := make(map[string]interface{}, 0)
-		for k, v := range records {
-			payload[columns[k]] = v
-		}
-
-		key := fmt.Sprintf("'%x'", md5.Sum([]byte(strings.Join(records, ""))))
-		if err := c.target.Attach(key, payload); err != nil {
+		key := fmt.Sprintf("%x", md5.Sum(scanner.Bytes()))
+		if err = c.target.Attach(key, payload); err != nil {
 			zap.S().Errorf("failed to attach content: %s", err.Error())
 			return err
 		}
@@ -144,19 +117,19 @@ func (c *csvSource) processFile(filename string) error {
 			continue
 		}
 
-		if err := c.target.Flush(); err != nil {
+		if err = c.target.Flush(); err != nil {
 			return errors.New(fmt.Sprintf("failed to flush event: %s", err.Error()))
 		}
 	}
 
-	if err := c.target.Flush(); err != nil {
+	if err = c.target.Flush(); err != nil {
 		return errors.New(fmt.Sprintf("failed to flush event: %s", err.Error()))
 	}
 
 	return nil
 }
 
-func (c *csvSource) filePathWalkDir(root string) ([]string, error) {
+func (c *jsonLSource) filePathWalkDir(root string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {

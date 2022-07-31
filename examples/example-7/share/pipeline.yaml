@@ -1,0 +1,24 @@
+stream:
+  port: 9999
+  healthCheck:
+    endpoint: /health
+  metrics:
+    endpoint: /metrics
+  instance:
+    source:
+      type: jsonl
+      specs:
+        path: ../vacancy-scraper/share/exports/
+    target:
+      type: pgsql
+      specs:
+        database: default
+        table: issues
+        keyColumnName: uuid
+        batchSize: 100
+        configurations:
+          host: '127.0.0.1'
+          port: 5432
+          user: 'root'
+          password: 'root'
+          sslmode: 'disable'
